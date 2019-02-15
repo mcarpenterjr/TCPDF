@@ -13512,6 +13512,7 @@ class TCPDF {
 	 * @since 6.0.090 (2014-06-16)
 	 */
 	public function setTimeStamp($tsa_host='', $tsa_username='', $tsa_password='', $tsa_cert='') {
+    // Update the name of this to setTimeStampAuthority or setTSA
 		$this->tsa_data = array();
 		if (!function_exists('curl_init')) {
 			$this->Error('Please enable cURL PHP extension!');
@@ -13543,7 +13544,19 @@ class TCPDF {
 		if (!$this->tsa_timestamp) {
 			return $signature;
 		}
-		//@TODO: implement this feature
+    //@TODO: implement this feature
+    
+    // Use openssl to get the request
+    // File.png is the $signature object
+    // file.tsq is the time stamp query which gets sent to the authority.
+    // openssl ts -query -data file.png -no_nonce -sha512 -out file.tsq
+    $exec = 'openssl ts -query -data file.png -no_nonce -sha512';
+    $signatureTSQ = shell_exec($exec);
+    // Use curl to execute the query request
+    // file.tsr is the completed request.
+    // curl -H "Content-Type: application/timestamp-query" --data-binary '@file.tsq' https://freetsa.org/tsr > file.tsr
+    // get the text of the response openssl ts -reply -in pdf.tsr -text
+    // add it to the signature object for write into the PDF @LINE:7614
 		return $signature;
 	}
 
